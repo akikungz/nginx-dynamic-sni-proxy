@@ -1,0 +1,37 @@
+{
+  "name": "haproxy-dynamic-proxy",
+  "version": "1.0.0",
+  "description": "Dynamic HAProxy multi-protocol proxy with database-driven configuration using Prisma and PostgreSQL",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node src/watch-database-notify.ts",
+    "generate-haproxy-config": "ts-node src/generate-haproxy-config.ts",
+    "watch": "ts-node src/watch-database-notify.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [
+    "haproxy",
+    "proxy",
+    "sni",
+    "ssh",
+    "postgresql",
+    "tcp",
+    "dynamic",
+    "multi-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "prisma": "^5.7.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
