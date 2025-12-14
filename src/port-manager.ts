@@ -35,7 +35,7 @@ export async function getUsedPorts(): Promise<Set<number>> {
     select: { publicPort: true },
   });
 
-  return new Set(proxies.map((p) => p.publicPort!).filter((p) => p !== null));
+  return new Set(proxies.map((p) => p.publicPort as number));
 }
 
 export function getPortRangeForProtocol(protocol: ProxyProtocol): PortRange | null {

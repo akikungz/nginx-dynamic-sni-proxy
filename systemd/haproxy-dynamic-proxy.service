@@ -7,7 +7,7 @@ Requires=postgresql.service
 Type=simple
 User=root
 WorkingDirectory=/opt/haproxy-dynamic-proxy
-Environment="DATABASE_URL=postgresql://haproxy_user:haproxy_password@localhost:5432/haproxy_db"
+EnvironmentFile=/opt/haproxy-dynamic-proxy/.env
 Environment="HAPROXY_CONFIG_PATH=/etc/haproxy/haproxy.cfg"
 Environment="NODE_ENV=production"
 ExecStartPre=/usr/bin/node /opt/haproxy-dynamic-proxy/dist/generate-haproxy-config.js

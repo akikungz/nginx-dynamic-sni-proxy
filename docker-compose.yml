@@ -1,3 +1,15 @@
+# Docker Compose Configuration for HAProxy Dynamic Proxy
+# 
+# SECURITY NOTICE:
+# For production use, create a .env file with secure credentials:
+#   DATABASE_URL=postgresql://user:secure_password@postgres:5432/dbname
+#   POSTGRES_USER=secure_user
+#   POSTGRES_PASSWORD=secure_password
+#   POSTGRES_DB=dbname
+#   STATS_PASSWORD=secure_stats_password
+#
+# Generate secure passwords: openssl rand -base64 32
+
 version: '3.8'
 
 services:
@@ -14,7 +26,7 @@ services:
       - "3307-3320:3307-3320"   # MySQL port range
       - "6380-6390:6380-6390"   # Redis port range
     environment:
-      - DATABASE_URL=postgresql://haproxy_user:haproxy_password@postgres:5432/haproxy_db
+      - DATABASE_URL=${DATABASE_URL:-postgresql://haproxy_user:haproxy_password@postgres:5432/haproxy_db}
       - NODE_ENV=production
       - HAPROXY_CONFIG_PATH=/etc/haproxy/haproxy.cfg
       - DOMAIN_SUFFIX=yourdomain.com
@@ -41,9 +53,9 @@ services:
     container_name: postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=haproxy_user
-      - POSTGRES_PASSWORD=haproxy_password
-      - POSTGRES_DB=haproxy_db
+      - POSTGRES_USER=${POSTGRES_USER:-haproxy_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-haproxy_password}
+      - POSTGRES_DB=${POSTGRES_DB:-haproxy_db}
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./sql/setup-db-triggers.sql:/docker-entrypoint-initdb.d/setup-triggers.sql
