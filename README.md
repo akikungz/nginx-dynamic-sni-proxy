@@ -93,15 +93,16 @@ This project provides a database-driven Nginx SNI proxy that automatically route
 - ✅ **Systemd Service**: Production-ready systemd unit file
 - ✅ **Health Checks**: Built-in health monitoring
 - ✅ **Logging**: Comprehensive logging with configurable levels
+- ✅ **Bun Compatible**: Works with both Node.js and Bun runtimes
 
 ## Prerequisites
 
 ### For Local Development
 
-- **Node.js**: v18.0.0 or higher
+- **Node.js**: v18.0.0 or higher (or **Bun**: v1.0.0 or higher)
 - **PostgreSQL**: v14.0 or higher
 - **Nginx**: v1.23.0 or higher (with stream module)
-- **npm**: v9.0.0 or higher
+- **npm**: v9.0.0 or higher (or **bun** if using Bun runtime)
 
 ### For Docker Deployment
 
@@ -119,8 +120,15 @@ This project provides a database-driven Nginx SNI proxy that automatically route
    ```
 
 2. **Install dependencies**:
+   
+   Using npm:
    ```bash
    npm install
+   ```
+   
+   Using Bun:
+   ```bash
+   bun install
    ```
 
 3. **Configure environment**:
@@ -136,17 +144,26 @@ This project provides a database-driven Nginx SNI proxy that automatically route
 
    # Run Prisma migrations
    npx prisma migrate dev
+   # Or with Bun: bunx prisma migrate dev
 
    # Generate Prisma client
    npx prisma generate
+   # Or with Bun: bunx prisma generate
 
    # Setup triggers (optional, for LISTEN/NOTIFY)
    psql $DATABASE_URL -f sql/setup-db-triggers.sql
    ```
 
 5. **Build TypeScript**:
+   
+   Using npm:
    ```bash
    npm run build
+   ```
+   
+   Using Bun:
+   ```bash
+   bun run build
    ```
 
 ## Configuration
@@ -211,8 +228,14 @@ This creates a proxy rule: `web.example.com:443` → `192.168.1.100:443`
 
 ### Generate Configuration Manually
 
+Using npm:
 ```bash
 npm run generate-config
+```
+
+Using Bun:
+```bash
+bun run generate-config
 ```
 
 This will:
@@ -224,27 +247,48 @@ This will:
 
 ### Start Database Watcher (Polling)
 
+Using npm:
 ```bash
 npm run watch-polling
+```
+
+Using Bun:
+```bash
+bun run watch-polling
 ```
 
 Polls the database every 30 seconds (configurable) for changes.
 
 ### Start Database Watcher (LISTEN/NOTIFY)
 
+Using npm:
 ```bash
 npm run watch-notify
+```
+
+Using Bun:
+```bash
+bun run watch-notify
 ```
 
 Uses PostgreSQL triggers for real-time notifications. Requires triggers to be installed.
 
 ### Using Built Application
 
+Using npm/Node.js:
 ```bash
 npm run build
 npm start  # Runs generate-config
 node dist/watch-database-changes.js  # Polling watcher
 node dist/watch-database-notify.js   # NOTIFY watcher
+```
+
+Using Bun:
+```bash
+bun run build
+bun run start  # Runs generate-config
+bun dist/watch-database-changes.js  # Polling watcher
+bun dist/watch-database-notify.js   # NOTIFY watcher
 ```
 
 ## Docker Deployment

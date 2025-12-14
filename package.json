@@ -12,7 +12,10 @@
     "setup-db": "prisma generate && psql $DATABASE_URL -f sql/setup-db-triggers.sql",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "bun:generate-config": "bun src/generate-nginx-config.ts",
+    "bun:watch-polling": "bun src/watch-database-changes.ts",
+    "bun:watch-notify": "bun src/watch-database-notify.ts"
   },
   "keywords": [
     "nginx",
