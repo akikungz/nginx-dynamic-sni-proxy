@@ -1,0 +1,39 @@
+{
+  "name": "nginx-dynamic-sni-proxy",
+  "version": "1.0.0",
+  "description": "Dynamic Nginx SNI proxy with database-driven configuration using Prisma and PostgreSQL",
+  "main": "dist/generate-nginx-config.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/generate-nginx-config.js",
+    "generate-config": "ts-node src/generate-nginx-config.ts",
+    "watch-polling": "ts-node src/watch-database-changes.ts",
+    "watch-notify": "ts-node src/watch-database-notify.ts",
+    "setup-db": "prisma generate && psql $DATABASE_URL -f sql/setup-db-triggers.sql",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [
+    "nginx",
+    "sni",
+    "proxy",
+    "dynamic",
+    "database",
+    "prisma",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "pg": "^8.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.0",
+    "prisma": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,33 @@
+[Unit]
+Description=Nginx Dynamic SNI Proxy - Database Change Watcher
+After=network.target postgresql.service nginx.service
+Wants=postgresql.service nginx.service
+
+[Service]
+Type=simple
+User=nginx
+Group=nginx
+WorkingDirectory=/opt/nginx-dynamic-sni-proxy
+Environment="NODE_ENV=production"
+EnvironmentFile=/etc/nginx-dynamic-sni-proxy/.env
+ExecStart=/usr/bin/node /opt/nginx-dynamic-sni-proxy/dist/watch-database-notify.js
+Restart=always
+RestartSec=10
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/etc/nginx /var/log/nginx
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nginx-dynamic-sni
+
+# Resource limits
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

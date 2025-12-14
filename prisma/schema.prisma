@@ -1,0 +1,102 @@
+// Prisma schema for nginx-dynamic-sni-proxy
+// Database-driven Nginx SNI proxy configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum InstanceStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+enum VmStatus {
+  RUNNING
+  STOPPED
+  SUSPENDED
+  PAUSED
+}
+
+enum ProtocolType {
+  TCP
+  UDP
+  HTTP
+  HTTPS
+}
+
+// Models
+model Instance {
+  id              String          @id @default(uuid())
+  name            String          @unique
+  description     String?
+  status          InstanceStatus  @default(ACTIVE)
+  pveVmId         String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  pveVm           PveVm?          @relation(fields: [pveVmId], references: [id])
+  reverseProxies  ReverseProxy[]
+  
+  @@map("instance")
+}
+
+model PveVm {
+  id              String          @id @default(uuid())
+  vmId            Int             @unique
+  name            String
+  node            String
+  status          VmStatus        @default(STOPPED)
+  cpus            Int?
+  memory          Int?
+  disk            String?
+  ipAddressId     String?         @unique
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  ipAddress       IpAddress?      @relation(fields: [ipAddressId], references: [id])
+  instance        Instance?
+  
+  @@map("pve_vm")
+}
+
+model IpAddress {
+  id              String          @id @default(uuid())
+  address         String          @unique
+  type            String?         // e.g., "ipv4", "ipv6"
+  gateway         String?
+  netmask         String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  pveVm           PveVm?
+  
+  @@map("ip_address")
+}
+
+model ReverseProxy {
+  id              String          @id @default(uuid())
+  instanceId      String
+  subdomain       String
+  targetPort      Int
+  protocol        ProtocolType    @default(TCP)
+  description     String?
+  enabled         Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  instance        Instance        @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+  
+  @@unique([subdomain, targetPort])
+  @@map("reverse_proxy")
+}
