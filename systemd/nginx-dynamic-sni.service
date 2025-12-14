@@ -19,7 +19,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
-ReadWritePaths=/etc/nginx/nginx.conf /var/log/nginx
+ReadWritePaths=/etc/nginx/nginx.conf /var/log/nginx/stream-access.log /var/log/nginx/error.log
 
 # Logging
 StandardOutput=journal

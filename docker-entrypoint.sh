@@ -24,7 +24,13 @@ npx prisma generate
 
 # Setup database triggers
 echo "Setting up database triggers..."
-psql "$DATABASE_URL" -f /app/sql/setup-db-triggers.sql || echo "Triggers already exist or setup failed"
+if psql "$DATABASE_URL" -f /app/sql/setup-db-triggers.sql 2>&1 | grep -q "already exists"; then
+  echo "Database triggers already exist (this is normal)"
+elif psql "$DATABASE_URL" -f /app/sql/setup-db-triggers.sql; then
+  echo "Database triggers created successfully"
+else
+  echo "Warning: Failed to setup database triggers. LISTEN/NOTIFY watcher may not work correctly."
+fi
 
 # Generate initial Nginx configuration
 echo "Generating initial Nginx configuration..."
