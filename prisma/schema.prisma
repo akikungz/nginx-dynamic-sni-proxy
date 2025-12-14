@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InstanceState {
+  ACTIVE
+  ARCHIVED
+}
+
+enum VmStatus {
+  RUNNING
+  STOPPED
+  PENDING
+}
+
+enum ProxyProtocol {
+  HTTPS_SNI      // Uses SNI routing on port 443
+  HTTP           // HTTP routing on port 80
+  SSH            // SSH on unique public port
+  POSTGRESQL     // PostgreSQL on unique public port
+  MYSQL          // MySQL on unique public port
+  REDIS          // Redis on unique public port
+  TCP_GENERIC    // Generic TCP passthrough
+}
+
+model instance {
+  id            Int             @id @default(autoincrement())
+  name          String
+  ipAddress     String
+  state         InstanceState   @default(ACTIVE)
+  vmStatus      VmStatus        @default(RUNNING)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  reverseProxies reverse_proxy[]
+
+  @@map("instance")
+}
+
+model reverse_proxy {
+  id               Int           @id @default(autoincrement())
+  protocol         ProxyProtocol @default(HTTPS_SNI)
+  publicPort       Int?          // Required for non-SNI protocols (e.g., 2201 for SSH)
+  targetPort       Int           // Target port on internal server (e.g., 22, 5432, 443)
+  targetInstanceId Int
+  targetInstance   instance      @relation(fields: [targetInstanceId], references: [id], onDelete: Cascade)
+  
+  // For SNI-based routing (HTTPS/HTTP)
+  customDomain     String?       // e.g., app1.domain.com (required for HTTPS_SNI)
+  
+  // Connection settings
+  maxConnections   Int           @default(1000)
+  timeoutConnect   Int           @default(5000)   // milliseconds
+  timeoutServer    Int           @default(300000) // milliseconds
+  
+  enabled          Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@unique([publicPort])
+  @@index([protocol])
+  @@map("reverse_proxy")
+}

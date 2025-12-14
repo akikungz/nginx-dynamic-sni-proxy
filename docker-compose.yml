@@ -1,0 +1,72 @@
+# Docker Compose Configuration for HAProxy Dynamic Proxy
+# 
+# SECURITY NOTICE:
+# For production use, create a .env file with secure credentials:
+#   DATABASE_URL=postgresql://user:secure_password@postgres:5432/dbname
+#   POSTGRES_USER=secure_user
+#   POSTGRES_PASSWORD=secure_password
+#   POSTGRES_DB=dbname
+#   STATS_PASSWORD=secure_stats_password
+#
+# Generate secure passwords: openssl rand -base64 32
+
+version: '3.8'
+
+services:
+  haproxy-dynamic-proxy:
+    build: .
+    container_name: haproxy-dynamic-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"                 # HTTP
+      - "443:443"               # HTTPS
+      - "8404:8404"             # HAProxy Stats
+      - "2201-2250:2201-2250"   # SSH port range
+      - "5433-5450:5433-5450"   # PostgreSQL port range
+      - "3307-3320:3307-3320"   # MySQL port range
+      - "6380-6390:6380-6390"   # Redis port range
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgresql://haproxy_user:haproxy_password@postgres:5432/haproxy_db}
+      - NODE_ENV=production
+      - HAPROXY_CONFIG_PATH=/etc/haproxy/haproxy.cfg
+      - DOMAIN_SUFFIX=yourdomain.com
+      - SSH_PORT_START=2201
+      - SSH_PORT_END=2299
+      - POSTGRES_PORT_START=5433
+      - POSTGRES_PORT_END=5533
+      - MYSQL_PORT_START=3307
+      - MYSQL_PORT_END=3407
+      - REDIS_PORT_START=6380
+      - REDIS_PORT_END=6480
+      - STATS_PORT=8404
+      - STATS_USERNAME=admin
+      - STATS_PASSWORD=changeme
+    volumes:
+      - ./haproxy-logs:/var/log/haproxy
+    depends_on:
+      - postgres
+    networks:
+      - internal
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-haproxy_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-haproxy_password}
+      - POSTGRES_DB=${POSTGRES_DB:-haproxy_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./sql/setup-db-triggers.sql:/docker-entrypoint-initdb.d/setup-triggers.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - internal
+
+volumes:
+  postgres-data:
+
+networks:
+  internal:
+    driver: bridge

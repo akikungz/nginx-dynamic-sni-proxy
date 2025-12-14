@@ -1,0 +1,21 @@
+[Unit]
+Description=HAProxy Dynamic Multi-Protocol Proxy with Database Watcher
+After=network.target postgresql.service haproxy.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/haproxy-dynamic-proxy
+EnvironmentFile=/opt/haproxy-dynamic-proxy/.env
+Environment="HAPROXY_CONFIG_PATH=/etc/haproxy/haproxy.cfg"
+Environment="NODE_ENV=production"
+ExecStartPre=/usr/bin/node /opt/haproxy-dynamic-proxy/dist/generate-haproxy-config.js
+ExecStart=/usr/bin/node /opt/haproxy-dynamic-proxy/dist/watch-database-notify.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
