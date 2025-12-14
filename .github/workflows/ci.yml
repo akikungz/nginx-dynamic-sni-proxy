@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+
+    - name: Run Prisma migrations
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+      run: npx prisma migrate deploy
+
+    - name: Build TypeScript
+      run: npm run build
+
+    - name: Lint (if available)
+      run: npm run lint --if-present
+
+    - name: Test configuration generation
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        HAPROXY_CONFIG_PATH: /tmp/haproxy-test.cfg
+      run: |
+        node dist/generate-haproxy-config.js
+        if [ -f /tmp/haproxy-test.cfg ]; then
+          echo "✅ Configuration generated successfully"
+          cat /tmp/haproxy-test.cfg
+        else
+          echo "❌ Configuration file not created"
+          exit 1
+        fi
+
+  docker:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build Docker image
+      run: docker build -t haproxy-dynamic-proxy:test .
+
+    - name: Test Docker image
+      run: |
+        docker images | grep haproxy-dynamic-proxy
+        echo "✅ Docker image built successfully"

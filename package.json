@@ -6,8 +6,10 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/watch-database-notify.ts",
+    "start": "node dist/watch-database-notify.js",
     "generate-haproxy-config": "ts-node src/generate-haproxy-config.ts",
     "watch": "ts-node src/watch-database-notify.ts",
+    "seed": "ts-node scripts/seed-example-data.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -26,10 +28,12 @@
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.7.1",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
+    "@types/pg": "^8.10.9",
     "prisma": "^5.7.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
