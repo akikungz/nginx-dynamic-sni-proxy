@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: nginx-sni-postgres
+    environment:
+      POSTGRES_DB: nginx_sni_proxy
+      POSTGRES_USER: nginx_user
+      POSTGRES_PASSWORD: nginx_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nginx_user -d nginx_sni_proxy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - nginx-sni-network
+    restart: unless-stopped
+
+  # Nginx Dynamic SNI Proxy
+  nginx-dynamic-sni:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nginx-dynamic-sni-proxy
+    environment:
+      DATABASE_URL: postgresql://nginx_user:nginx_password@postgres:5432/nginx_sni_proxy
+      NODE_ENV: production
+      NGINX_CONFIG_PATH: /etc/nginx/nginx.conf
+      DOMAIN_SUFFIX: example.com
+      LOG_LEVEL: info
+      DEBOUNCE_DELAY: 5000
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx-logs:/var/log/nginx
+      - nginx_config:/etc/nginx
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nginx-sni-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  postgres_data:
+    driver: local
+  nginx_config:
+    driver: local
+
+networks:
+  nginx-sni-network:
+    driver: bridge
