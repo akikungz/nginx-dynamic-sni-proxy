@@ -99,19 +99,10 @@ async function fetchProxyConfigs(): Promise<ProxyConfig[]> {
  * Generate Nginx stream configuration
  */
 function generateNginxConfig(configs: ProxyConfig[]): string {
-  const streamBlocks = configs.map(config => {
-    return `    # ${config.instanceName} - ${config.protocol}
-    server {
-        listen 443;
-        proxy_pass ${config.ipAddress}:${config.targetPort};
-        ssl_preread on;
-        proxy_protocol on;
-    }`;
-  }).join('\n\n');
-
-  const mapBlock = configs.map(config => {
+  // Generate mapping entries with comments
+  const mapEntries = configs.map(config => {
     const serverName = `${config.subdomain}.${DOMAIN_SUFFIX}`;
-    return `    ${serverName} ${config.ipAddress}:${config.targetPort};`;
+    return `        ${serverName} ${config.ipAddress}:${config.targetPort};  # ${config.instanceName} - ${config.protocol}`;
   }).join('\n');
 
   return `# Auto-generated Nginx configuration for dynamic SNI proxy
@@ -130,7 +121,7 @@ events {
 stream {
     # SNI-based routing map
     map $ssl_preread_server_name $backend_name {
-${mapBlock}
+${mapEntries}
         default 127.0.0.1:8080;
     }
 
@@ -141,7 +132,13 @@ ${mapBlock}
     
     access_log /var/log/nginx/stream-access.log proxy;
 
-${streamBlocks}
+    # Main proxy server - uses SNI map for routing
+    server {
+        listen 443;
+        proxy_pass $backend_name;
+        ssl_preread on;
+        proxy_protocol on;
+    }
 }
 `;
 }

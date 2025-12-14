@@ -24,12 +24,7 @@ npx prisma generate
 
 # Setup database triggers
 echo "Setting up database triggers..."
-PGPASSWORD=$(echo $DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p') \
-PGHOST=$(echo $DATABASE_URL | sed -n 's/.*@\([^:]*\).*/\1/p') \
-PGPORT=$(echo $DATABASE_URL | sed -n 's/.*:\([0-9]*\)\/.*/\1/p') \
-PGDATABASE=$(echo $DATABASE_URL | sed -n 's/.*\/\(.*\)/\1/p') \
-PGUSER=$(echo $DATABASE_URL | sed -n 's/.*:\/\/\([^:]*\):.*/\1/p') \
-psql -f /app/sql/setup-db-triggers.sql || echo "Triggers already exist or setup failed"
+psql "$DATABASE_URL" -f /app/sql/setup-db-triggers.sql || echo "Triggers already exist or setup failed"
 
 # Generate initial Nginx configuration
 echo "Generating initial Nginx configuration..."

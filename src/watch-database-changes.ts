@@ -43,6 +43,8 @@ function log(level: string, message: string, data?: any) {
  */
 async function calculateChecksum(): Promise<string> {
   try {
+    const crypto = require('crypto');
+    
     const reverseProxies = await prisma.reverseProxy.findMany({
       where: {
         enabled: true
@@ -77,15 +79,8 @@ async function calculateChecksum(): Promise<string> {
       updatedAt: rp.updatedAt
     })));
 
-    // Simple hash function
-    let hash = 0;
-    for (let i = 0; i < configString.length; i++) {
-      const char = configString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    
-    return hash.toString(36);
+    // Use SHA256 for reliable hashing
+    return crypto.createHash('sha256').update(configString).digest('hex');
   } catch (error) {
     log('error', 'Failed to calculate checksum', error);
     throw error;
