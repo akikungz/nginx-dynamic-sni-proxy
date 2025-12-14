@@ -100,8 +100,6 @@ async function fetchProxyConfigs(): Promise<ProxyConfig[]> {
  */
 function generateNginxConfig(configs: ProxyConfig[]): string {
   const streamBlocks = configs.map(config => {
-    const serverName = `${config.subdomain}.${DOMAIN_SUFFIX}`;
-    
     return `    # ${config.instanceName} - ${config.protocol}
     server {
         listen 443;
